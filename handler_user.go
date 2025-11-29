@@ -37,18 +37,6 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 	respondWithJSON(w, 201, databaseUserToUser(newUser))
 }
 
-func (apiCfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request) {
-	apiKey, err := auth.GetApiKey(r.Header)
-	if err != nil {
-		respondWithERROR(w, 403, fmt.Sprintf("Auth error: %v", err))
-		return
-	}
-
-	user, err := apiCfg.DB.GetUserByApiKey(r.Context(), apiKey)
-	if err != nil {
-		respondWithERROR(w, 400, fmt.Sprintf("Couldn't get user : %v", err))
-		return
-	}
-
+func (apiCfg *apiConfig) handlerGetUserByApiKey(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondWithJSON(w, 200, databaseUserToUser(user))
 }
