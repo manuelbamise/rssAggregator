@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,7 +18,7 @@ type apiConfig struct {
 }
 
 func main() {
-	fmt.Println("Hello world")
+	// fmt.Println("Hello world")
 
 	godotenv.Load(".env")
 
@@ -64,7 +63,8 @@ func main() {
 	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
 	v1Router.Get("/feeds", apiCfg.handlerGetFeeds)
 
-	v1Router.Post("/feed-follow", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
+	v1Router.Post("/feed-follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
+	v1Router.Get("/feed-follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollow))
 
 	router.Mount("/v1", v1Router)
 

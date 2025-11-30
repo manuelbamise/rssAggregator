@@ -23,29 +23,29 @@ func (apiCfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.
 		return
 	}
 
-	newFeedFollow, err := apiCfg.DB.CreateFeedFollow(r.Context(),database.CreateFeedFollowParams{
+	newFeedFollow, err := apiCfg.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 		UserID:    user.ID,
-		FeedID: params.FeedID,
+		FeedID:    params.FeedID,
 	})
 	if err != nil {
-		respondWithERROR(w, 400, fmt.Sprintf("Error creating new feed: %v", err))
+		respondWithERROR(w, 400, fmt.Sprintf("Error creating new feed follow: %v", err))
 		return
 	}
 
-	respondWithJSON(w, 201,databaseFeedFollowToFeedFollow(newFeedFollow))
+	respondWithJSON(w, 201, databaseFeedFollowToFeedFollow(newFeedFollow))
 }
 
-// func (apiCfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+func (apiCfg *apiConfig) handlerGetFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
 
-// 	feeds, err := apiCfg.DB.GetFeeds(r.Context())
-// 	if err != nil {
-// 		respondWithERROR(w, 400, fmt.Sprintf("Error getting all feeds: %v", err))
-// 		return
-// 	}
+	followedFeeds, err := apiCfg.DB.GetFeedFollows(r.Context(), user.ID)
+	if err != nil {
+		respondWithERROR(w, 400, fmt.Sprintf("Error fetching all followed feeds: %v", err))
+		return
+	}
 
-// 	respondWithJSON(w, 201, databaseFeedsToFeeds(feeds))
-// }
+	respondWithJSON(w, 201, databaseFeedFollowsToFeedFollows(followedFeeds))
+}
