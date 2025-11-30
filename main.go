@@ -18,7 +18,6 @@ type apiConfig struct {
 }
 
 func main() {
-	// fmt.Println("Hello world")
 
 	godotenv.Load(".env")
 
