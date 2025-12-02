@@ -70,5 +70,5 @@ func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.
 		return
 	}
 
-	respondWithJSON(w, 200, `message:"Feed unfollowed successfully"`)
+	respondWithJSON(w, 200, struct{}{})
 }
