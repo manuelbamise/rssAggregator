@@ -49,3 +49,29 @@ func (apiCfg *apiConfig) handlerGetFeedFollow(w http.ResponseWriter, r *http.Req
 
 	respondWithJSON(w, 201, databaseFeedFollowsToFeedFollows(followedFeeds))
 }
+
+func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameters struct {
+		ID uuid.UUID `json:"id"`
+	}
+	decoder := json.NewDecoder(r.Body)
+	params := parameters{}
+
+	err := decoder.Decode(&params)
+	if err != nil {
+		respondWithERROR(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	err = apiCfg.DB.DeleteFeedFollows(r.Context(), database.DeleteFeedFollowsParams{
+		ID:     params.ID,
+		UserID: user.ID,
+	})
+
+	if err != nil {
+		respondWithERROR(w, 400, fmt.Sprintf("Error fetching all followed feeds: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 200, "Feed unfollowed successfully")
+}
