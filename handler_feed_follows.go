@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	"github.com/manuelbamise/rssAggregator/internal/database"
 )
@@ -51,20 +52,16 @@ func (apiCfg *apiConfig) handlerGetFeedFollow(w http.ResponseWriter, r *http.Req
 }
 
 func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
-	type parameters struct {
-		ID uuid.UUID `json:"id"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	params := parameters{}
+	feedFollowIDStr := chi.URLParam(r, "feedFollowID")
 
-	err := decoder.Decode(&params)
+	feedFollowID, err := uuid.Parse(feedFollowIDStr)
 	if err != nil {
-		respondWithERROR(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		respondWithERROR(w, 400, fmt.Sprintf("Error parsing feedFollowID: %v", err))
 		return
 	}
 
 	err = apiCfg.DB.DeleteFeedFollows(r.Context(), database.DeleteFeedFollowsParams{
-		ID:     params.ID,
+		ID:     feedFollowID,
 		UserID: user.ID,
 	})
 
@@ -73,5 +70,5 @@ func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.
 		return
 	}
 
-	respondWithJSON(w, 200, "Feed unfollowed successfully")
+	respondWithJSON(w, 200, `message:"Feed unfollowed successfully"`)
 }
