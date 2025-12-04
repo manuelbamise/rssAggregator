@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/manuelbamise/rssAggregator/internal/database"
 )
 
@@ -47,7 +49,28 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	}
 
 	for _, item := range rssFeed.Channel.Item {
-		log.Println("Found post: ", item.Title, "on feed: ", feed.Name)
+		description := sql.NullString{}
+
+		if item.Description != "" {
+			description.String = item.Description
+			description.Valid = true
+		}
+
+		pubAt, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			log.Println("Error parsing date string", err)
+			continue
+		}
+
+		db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       item.Title,
+			Description: description,
+			Url:         item.Link,
+			PublishedAt: pubAt,
+		})
 	}
 
 	log.Printf("Feeds %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Item))
