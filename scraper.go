@@ -25,12 +25,12 @@ func startScraping(db *database.Queries, concurrency int, timeBetweenRequests ti
 		for _, feed := range nextFeedsToFetch {
 			wg.Add(1)
 
-			go scrapeFeed(wg)
+			go scrapeFeed(db, wg, feed)
 		}
 		wg.Wait()
 	}
 }
 
-func scrapeFeed(wg *sync.WaitGroup) {
+func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	defer wg.Done()
 }
