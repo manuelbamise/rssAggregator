@@ -33,4 +33,23 @@ func startScraping(db *database.Queries, concurrency int, timeBetweenRequests ti
 
 func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	defer wg.Done()
+
+	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Println("Error marking feed as fetched", err)
+		return
+	}
+
+	rssFeed, err := urlToFeed(feed.Url)
+	if err != nil {
+		log.Println("Error converting url to feed", err)
+		return
+	}
+
+	for _, item := range rssFeed.Channel.Item {
+		log.Println("Found post: ", item.Title)
+	}
+
+	log.Printf("Feeds %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Item))
+
 }
