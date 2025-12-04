@@ -62,7 +62,7 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 			continue
 		}
 
-		db.CreatePost(context.Background(), database.CreatePostParams{
+		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
 			ID:          uuid.New(),
 			CreatedAt:   time.Now().UTC(),
 			UpdatedAt:   time.Now().UTC(),
@@ -70,7 +70,12 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 			Description: description,
 			Url:         item.Link,
 			PublishedAt: pubAt,
+			FeedID:      feed.ID,
 		})
+		if err != nil {
+			log.Println("Error creating new post", err)
+		}
+
 	}
 
 	log.Printf("Feeds %s collected, %v posts found", feed.Name, len(rssFeed.Channel.Item))
