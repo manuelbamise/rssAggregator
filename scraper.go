@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,15 +53,30 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 	for _, item := range rssFeed.Channel.Item {
 		description := sql.NullString{}
 
+		if item.Title == "" {
+			log.Println("Skipping posts without titles")
+			continue
+		}
+
 		if item.Description != "" {
 			description.String = item.Description
 			description.Valid = true
 		}
 
-		pubAt, err := time.Parse(time.RFC1123Z, item.PubDate)
-		if err != nil {
-			log.Println("Error parsing date string", err)
-			continue
+		postUrl := item.Link
+		if postUrl == "" {
+			// Generate a unique URL using the feed ID and item title or use a UUID
+			postUrl = fmt.Sprintf("%s/post/%s", feed.Url, uuid.New().String())
+		}
+
+		pubAt := time.Now().UTC()
+		if item.PubDate != "" {
+			parsedTime, err := time.Parse(time.RFC1123Z, item.PubDate)
+			if err == nil {
+				pubAt = parsedTime
+			} else {
+				log.Printf("Error parsing date '%s': %v", item.PubDate, err)
+			}
 		}
 
 		_, err = db.CreatePost(context.Background(), database.CreatePostParams{
@@ -68,11 +85,15 @@ func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
 			UpdatedAt:   time.Now().UTC(),
 			Title:       item.Title,
 			Description: description,
-			Url:         item.Link,
+			Url:         postUrl,
 			PublishedAt: pubAt,
 			FeedID:      feed.ID,
 		})
+
 		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key") {
+				continue
+			}
 			log.Println("Error creating new post", err)
 		}
 
