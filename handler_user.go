@@ -50,4 +50,6 @@ func (apiCfg *apiConfig) handlerPostsForUser(w http.ResponseWriter, r *http.Requ
 		respondWithERROR(w, 400, fmt.Sprintf("Error getting posts for user: %v", err))
 		return
 	}
+
+	respondWithJSON(w, 200, databasePostsToPost(posts))
 }
